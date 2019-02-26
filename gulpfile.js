@@ -79,7 +79,7 @@ gulp.task('images', gulp.series('clean-images', () => {
 
 gulp.task('create', gulp.parallel('styles','fonts','images'));
 
-gulp.task('clear', gulp.parallel('clean-styles','clean-fonts','clean-images'));
+gulp.task('clear', gulp.parallel(() => clean(config.output.slice(0,-1))));
 
 
 gulp.task('watch', () => {
@@ -115,6 +115,8 @@ gulp.task('serve-dev', gulp.series('analyze', () => {
         log('server terminated');
     });
 }));
+
+gulp.task('default', gulp.series('create', 'serve-dev'));
 
 
 
