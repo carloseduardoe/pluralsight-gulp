@@ -41,21 +41,46 @@ gulp.task('analyze', () => {
     .pipe($.jshint.reporter('fail'));
 });
 
-gulp.task('clean-styles', () => {
-    return clean(config.output + '* .css');
-});
+gulp.task('clean-styles', gulp.series(() => {
+    return clean(config.output + 'styles');
+}));
+
+gulp.task('clean-fonts', gulp.series(() => {
+    return clean(config.output + 'fonts');
+}));
+
+gulp.task('clean-images', gulp.series(() => {
+    return clean(config.output + 'images');
+}));
 
 gulp.task('styles', gulp.series('clean-styles', () => {
     return gulp.src(config.stylepaths.less)
     .pipe($.plumber())
     .pipe($.less())
     .pipe($.autoprefixer({browsers: ['last 2 version', '> 5%']}))
-    .pipe(gulp.dest(config.output));
+    .pipe(gulp.dest(config.output + 'styles'));
     // .on('error', function(e){
     //     logError(e);
     //     this.emit('end');
     // });
 }));
+
+gulp.task('fonts', gulp.series('clean-fonts', () => {
+    return gulp.src(config.fontpaths)
+    .pipe(gulp.dest(config.output + 'fonts'))
+}));
+
+gulp.task('images', gulp.series('clean-images', () => {
+    return gulp.src(config.imagepaths)
+    .pipe($.imagemin({optimizationLevel : 4}))
+    .pipe(gulp.dest(config.output + 'images'))
+}));
+
+
+gulp.task('create', gulp.parallel('styles','fonts','images'));
+
+gulp.task('clear', gulp.parallel('clean-styles','clean-fonts','clean-images'));
+
 
 gulp.task('watch', () => {
     gulp.watch(config.stylepaths.less, gulp.series('styles'));
@@ -68,13 +93,13 @@ gulp.task('wiredep', () => {
     .pipe(gulp.dest(config.clientpath));
 });
 
-gulp.task('inject', gulp.series('styles', 'wiredep', () => {
+gulp.task('inject', gulp.series('styles', 'wiredep'), () => {
     return gulp.src(config.clientpath + 'index.html')
-    .pipe($.inject(gulp.src(config.output + 'styles.css')))
+    .pipe($.inject(gulp.src(config.output + 'styles/styles.css')))
     .pipe(gulp.dest(config.clientpath));
-}));
+});
 
-gulp.task('serve-dev', gulp.series('inject', () => {
+gulp.task('serve-dev', gulp.series('analyze', () => {
     return $.nodemon(config.serverconfig)
     .on('restart', gulp.series('analyze', (ev) => {
         log('changes detected in ' + ev);
@@ -115,7 +140,7 @@ let startSync = () => {
         injectChanges  : true,
         logFileChanges : true,
         logLevel       : 'debug',
-        logPrefix      : 'gulp',
+        logPrefix      : 'gulp -> ',
         notify         : true,
         reloadDelay    : 1000
     });

@@ -13,29 +13,35 @@ module.exports = {
     ],
     stylepaths    : {
         scss : [
-            'styles/**/*.scss',
-            'styles/*.scss',
+            client + 'styles/**/*.scss',
+            client + 'styles/*.scss',
         ],
         less : [
-            'styles/**/*.less',
-            'styles/*.less',
+            client + 'styles/**/*.less',
+            client + 'styles/*.less',
         ],
         css  : [
-            'styles/**/*.css',
-            'styles/*.css',
+            client + 'styles/**/*.css',
+            client + 'styles/*.css',
         ]
     },
+    fontpaths : [
+        './bower_components/font-awesome/fonts/**/*.*'
+    ],
+    imagepaths : [
+        client + 'images/**/*.*'
+    ],
     clientpath    : client,
     serverpath    : server,
     output        : client + 'build/',
     serverconfig  : {
-        script : server + 'app',
-        delay  : 1,
-        env    : {
+        script    : server + 'app.js',
+        delayTime : 1,
+        env       : {
             'PORT'     : 7203,
             'NODE_ENV' : process.env.NODE_ENV || 'dev'
         },
-        watch  : [server + '**/*.*']
+        watch     : [server + '**/*.*']
     },
     getWiredepOptions : () => { return {
         bowerJson  : require('./bower.json'),
