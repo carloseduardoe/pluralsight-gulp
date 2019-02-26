@@ -11,12 +11,19 @@
         /* Since Angular has this but needs to load, this gives us the class early. */
         .ng-hide { display: none!important; }
     </style>
-
+    <!-- 
     <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="/bower_components/font-awesome/css/font-awesome.css" />
     <link rel="stylesheet" href="/bower_components/toastr/toastr.css" />
+    <link rel="stylesheet" href=".build/styles.css"/>
+    -->
 
-    <link rel="stylesheet" href=".tmp/styles.css"/>
+    <!-- bower:css -->
+    <!-- endbower -->
+
+    <!-- inject:css -->
+    <!-- endinject -->
+
 </head>
 <body>
     <div>
@@ -32,7 +39,14 @@
             </div>
         </div>
     </div>
+    
+    <!-- bower:js -->
+    <!-- endbower -->
+    
+    <!-- inject:js -->
+    <!-- endinject -->
 
+    <!-- 
     <script src="/bower_components/jquery/dist/jquery.js"></script>
     <script src="/bower_components/angular/angular.js"></script>
     <script src="/bower_components/angular-sanitize/angular-sanitize.js"></script>
@@ -70,5 +84,6 @@
     <script src="/src/client/app/blocks/exception/exception.js"></script>
     <script src="/src/client/app/blocks/logger/logger.js"></script>
     <script src="/src/client/app/blocks/router/router-helper.provider.js"></script>
+    -->
 </body>
 </html>
