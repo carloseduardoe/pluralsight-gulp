@@ -7,9 +7,9 @@ module.exports = {
         './src/*.js'
     ],
     clientjspaths : [
-        client + 'app/**/*.module.js',
-        client + 'app/**/*.js',
-        '!' + client + 'app/**/*.spec.js'
+        'app/**/*.module.js',
+        'app/**/*.js',
+        '!app/**/*.spec.js'
     ],
     stylepaths    : {
         scss : [
@@ -32,6 +32,7 @@ module.exports = {
         client + 'images/**/*.*'
     ],
     clientpath    : client,
+    indexpath     : client + 'index.html',
     serverpath    : server,
     output        : client + 'build/',
     serverconfig  : {

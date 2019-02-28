@@ -15,7 +15,9 @@ let gulp    = require('gulp'),
 //     plumber = require('gulp-plumber');
 
 // plugin wrapper
-let $ = require('gulp-load-plugins')({lazy: true});
+let $      = require('gulp-load-plugins')({lazy: true}),
+    colors = require('ansi-colors'),
+    flog   = require('fancy-log');
 
 
 
@@ -28,6 +30,7 @@ gulp.task('hello-world', () => {
 });
 
 gulp.task('analyze', () => {
+    log({msg: 'Lalalalalalalala'});
     return gulp.src(config.jspaths)
     // .pipe(glpif(args.verbose, gprint()))
     // .pipe(jscs())
@@ -83,24 +86,43 @@ gulp.task('clear', gulp.parallel(() => clean(config.output.slice(0,-1))));
 
 
 gulp.task('watch', () => {
-    gulp.watch(config.stylepaths.less, gulp.series('styles'));
+    gulp.watch(config.stylepaths.less, gulp.series('styles', sync.reload));
 });
 
 gulp.task('wiredep', () => {
-    return gulp.src(config.clientpath + 'index.html')
+    return gulp.src(config.indexpath)
     .pipe(wiredep(config.getWiredepOptions()))
     .pipe($.inject(gulp.src(config.clientjspaths)))
     .pipe(gulp.dest(config.clientpath));
 });
 
 gulp.task('inject', gulp.series('styles', 'wiredep'), () => {
-    return gulp.src(config.clientpath + 'index.html')
+    return gulp.src(config.indexpath)
     .pipe($.inject(gulp.src(config.output + 'styles/styles.css')))
     .pipe(gulp.dest(config.clientpath));
 });
 
-gulp.task('serve-dev', gulp.series('analyze', () => {
-    return $.nodemon(config.serverconfig)
+gulp.task('optimize', gulp.series('inject', () => {
+    let filtercss = $.filter('**/*.css', {restore: true}),
+        filterjs  = $.filter('**/*.js', {restore: true}),
+        assets    = $.useref({searchPath: './'});
+
+    return gulp.src(config.indexpath)
+    .pipe($.plumber())
+    .pipe(assets)
+    .pipe(filtercss)
+    .pipe($.rev())
+    .pipe($.csso())
+    .pipe(filtercss.restore)
+    .pipe(filterjs)
+    .pipe($.uglify())
+    .pipe($.revReplace())
+    .pipe(filterjs.restore)
+    .pipe(gulp.dest(config.output));
+}));
+
+gulp.task('serve-dev', () => {
+    return $.nodemon(serve('dev'))
     .on('restart', gulp.series('analyze', (ev) => {
         log('changes detected in ' + ev);
     }))
@@ -114,9 +136,17 @@ gulp.task('serve-dev', gulp.series('analyze', () => {
     .on('exit',    () => {
         log('server terminated');
     });
-}));
+});
 
-gulp.task('default', gulp.series('create', 'serve-dev'));
+gulp.task('serve-build', () => {
+    return $.nodemon(serve('build'));
+});
+
+gulp.task('test', () => {
+    runTests(true, (e) => log(e));
+});
+
+gulp.task('default', gulp.series('clear', 'create', 'optimize', 'test'));
 
 
 
@@ -148,27 +178,53 @@ let startSync = () => {
     });
 }
 
-let logError = (e) => {
-    log('------------------------- Error -------------------------');
-    log(e);
-    log('---------------------------------------------------------');
+let serve = (env) => {
+    let sconfig = config.serverconfig;
+    sconfig.env['NODE_ENV'] = env;
+    return sconfig;
+}
+
+let runTests = (single, done) => {
+    let Karma         = require('karma').Server,
+        serverspecs   = config.serverIntegration,
+        fork          = require('child_process').fork,
+        excludedfiles = [],
+        child;
+
+    if(args.startServers) {
+        log('Starting server...');
+        child = fork(config.serverconfig);
+    } else if(serverspecs && serverspecs.length)
+        excludedfiles = serverspecs;
+
+    let server = new Karma({
+        configFile : __dirname + '/karma.conf.js',
+        exclude    : excludedfiles,
+        singleRun  : !!single
+    }, (result) => {
+        if(child) {
+            log('Shutting down child process...');
+            child.kill();   
+        }
+        log('Karma Completed');
+        result !== 0 ? done('karma tests failed with code ' + result) : done();
+    });
+    server.start();
 }
 
 let log = (msg) => {
     if (typeof(msg) === 'object') {
         for (var item in msg) {
             if (msg.hasOwnProperty(item)) {
-                // util.log(util.colors.cyan(msg[item]));
-                $.util.log($.util.colors.magenta(msg[item]));
+                flog(colors.cyan(msg[item]));
             }
         }
     } else {
-        // util.log(util.colors.blue(msg));
-        $.util.log($.util.colors.green(msg));
+        flog(colors.yellow(msg));
     }
 }
 
 let clean = (path) => {
-    $.util.log($.util.colors.cyan('Cleaning: ' + path));
+    log(colors.cyan('Cleaning: ' + path));
     return del(path);
 }

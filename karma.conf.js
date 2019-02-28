@@ -1,5 +1,5 @@
 module.exports = function(config) {
-    var gulpConfig = require('./gulp.config')();
+    var gulpConfig = require('./gulp.config');
 
     config.set({
         // base path that will be used to resolve all patterns (eg. files, exclude)
